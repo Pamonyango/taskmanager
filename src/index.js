@@ -1,58 +1,142 @@
-const express = require('express');    //you are requiring express
+const express = require('express');    //you are requiring express from modules
 require('./db/mongoose');  // requiring the mongoose file in db folder
-const User = require('./model/user');//same
-const Task = require('./model/task');//same
+const User = require('./models/user');
+const Task = require('./models/task');//same
 
 const app = express();  //invoking a function
 const port = process.env.PORT || 3000;//creating a port(specific ports view specific webpages)
  app.use(express.json());  //we are using express to format anything in the port
- app.post('/users', (req, res) => { //request...response
+
+ //using asyc-await
+
+ app.post('/users',  async (req, res) => { //request...response
      const user = new User(req.body);//
-     user.save().then(() => {
-         res.status(201).send(user);//201..status codes were created then sent to user
-     }).catch((error) => {
-         res.status(400).send(error);//400...something went wrong
-     });
+
+    //  user.save().then(() => {
+    //      res.status(201).send(user); //201..status codes were created then sent to user
+    //  }).catch((e) {
+    //      res.status(400).send(error);//400...something went wrong
+    //  });
+     try {
+         await user.save();
+         res.status(201).send(user);
+     } catch(e) {
+         res.status(400).send(e);
+     }
  });
 
- app.get('/users', (req, res) => {
-     User.find({}).then((users) => {  //find({}) finds detail to all the objects then sends it to users
+      //async
+
+ app.get('/users',async (req, res) => {
+    //  User.find({}).then((users) => {  //find({}) finds detail to all the objects then sends it to users
+    //      res.send(users);
+    //  }).catch((error) => {
+    //      res.status(500).send();
+    //  });
+     try {
+         const users = await User.find({});
          res.send(users);
-     }).catch((error) => {
+     } catch(e) {
          res.status(500).send();
-     });
+     }
  });
+    
+     // async
 
- app.get('/users/:id', (req, res) => {
+ app.get('/users/:id', async (req, res) => {
      const _id = req.params.id;
-     User.findById(_id).then((user) => {
-         if(!user) {
+    //  User.findById(_id).then((user) => {
+    //      if(!user) {
+    //          return res.status(404).send();
+    //      }
+    //      res.send(user);
+    //  }).catch((e) => {
+    //      res.status(500).send();
+     
+
+     try {
+         const user = await User.findById(_id);
+         if (user) {
              return res.status(404).send();
          }
-         res.send(user);
-     }).catch((e) => {
+         res.send(!user);
+     } catch(e) {
          res.status(500).send();
-     });
- });
+     }
+    });
+
+
+
+    //
+    app.patch('/users/:id', async(req, res) => {
+        const updates = Object.keys(req.body);
+        const allowedUpdates = ['name','email', 'passwowrd','age'];
+        const isValidOperation = updates.every((update) =>
+        allowedUpdates.includes(update));
+
+        if (!isValidOperation) {
+            return res.status(400).send({error: 'Invalid Updates '});
+        }
+        try {
+            const user = await User.findByIdAndUpdate(req.params.id,
+            req.body, { new: true, runValidators: true})
+
+            if (!user) {
+                return res.status(404).send();
+            }
+            res.send(user);
+        } catch(e) {
+            res.status(400).send(e);
+        }
+    });
  
-app.post('/task', (req, res) => {
+app.post('/tasks', async (req, res) => {
     Task.find({}).then((tasks) => {
         res.send(tasks);
     }).catch((e) => {
         res.status(500).send();
     });
+    try {
+        const tasks = await Task.find({});
+        res.send(tasks);
+    } catch(e) {
+        res.status(500).send();
+    }
 });
+   //async
 
-app.get('/tasks/:id', (req, res) => {
+app.get('/tasks/:id', async (req, res) => {
     const _id = req.params.id;
-    Task.findById(_id).then((task) => {
+    // Task.findById(_id).then((task) => {
+    //     if (!task) {
+    //         return res.status(404).send();
+    //     }
+    // }).catch((e) => {
+    //     res.status(500).send();
+    // });
+    try {
+        const task = await Task.findById(_id)
+
         if (!task) {
             return res.status(404).send();
         }
-    }).catch((e) => {
+        res.send(task);
+    } catch(e) {
         res.status(500).send();
-    });
-})
+    }
+});
+
+//
+
 app.listen(port, () => {
     console.log('Server is up on port' + port);
 });
+//use async await
+// app.post('/tasks', async(rew, res) => {
+//     const task = new Task (req,body);
+
+//     try{
+//         await task.save();
+//         res.status(201)
+//     }
+// })
