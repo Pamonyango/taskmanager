@@ -10,9 +10,9 @@ const taskRouter = require('./routers/task');
 const app = express();  //invoking a function
 const port = process.env.PORT || 3000;//creating a port(specific ports view specific webpages)
 
-app.use((re,res, next) => {
-    res.status(503).send('site is currently down');
-});
+// app.use((re,res, next) => {//before you go to next,you must wait for response
+//     res.status(503).send('site is currently down');//
+// });
  app.use(express.json());  //we are using express to format anything in the port
 app.use(useRouter);
 app.use(taskRouter);
@@ -138,7 +138,7 @@ app.use(taskRouter);
 //
 
 app.listen(port, () => {
-    console.log('Server is up on port' + port);
+    console.log('Server is up on port' + port);//listening to the port in server
 });
 //use async await
 // app.post('/tasks', async(rew, res) => {

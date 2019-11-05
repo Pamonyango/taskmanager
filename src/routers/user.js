@@ -1,5 +1,6 @@
 const express = require('express');
 const User = require('../models/user');
+const auth = require('../middleware/auth');
 const router = new express.Router();
 
  router.post('/users',  async (req, res) => { //request...response
@@ -11,15 +12,15 @@ const router = new express.Router();
    //      res.status(400).send(error);//400...something went wrong
    //  });
     try {  //a feauture used when something is successful
-        await user.save();
-        res.status(201).send(user);
+        await user.save();//saving to the user
+        res.status(201).send(user);//
     } catch(e) {
         res.status(400).send(e);
     }
 });
-router.post('/users/login', async (req, res) => {
+router.post('/users/login', async (req, res) => {//router for login post for creating
     try{
-        const user = await User.findByCredentials(req.body.email, req.body.password);
+        const user = await User.findByCredentials(req.body.email, req.body.password);//finding email and paswword
 
         const token = await user.generateAuthToken();
         res.send({user, token});
@@ -27,6 +28,9 @@ router.post('/users/login', async (req, res) => {
         res.status(400).send(e);
         console.log(e);
     }
+});
+router.get('/users',async (req,res) => {
+    res.send(req.user);
 });
 
      //async
@@ -73,12 +77,12 @@ router.get('/users/:id', async (req, res) => {
    //
    router.patch('/users/:id', async(req, res) => {
        const updates = Object.keys(req.body);
-       const allowedUpdates = ['name','email', 'passwowrd','age'];
-       const isValidOperation = updates.every((update) =>
+       const allowedUpdates = ['name','email', 'passwowrd','age'];//declaring a variable
+       const isValidOperation = updates.every((update) =>//using every method to check each value
        allowedUpdates.includes(update));
 
-       if (!isValidOperation) {
-           return res.status(400).send({error: 'Invalid Updates '});
+       if (!isValidOperation) {//if there is smthing not matching,should send error
+           return res.status(400).send({error: 'Invalid Updates '});//
        }
        try {
           const user = await User.findById(req.params.id);
@@ -86,7 +90,7 @@ router.get('/users/:id', async (req, res) => {
           updates.forEach((update) => {
               return user[update] = req.body[update];
           });
-          await user.save();
+          await user.save();//what is saved is left in database
 
            if (!user) {
                return res.status(404).send();
@@ -135,17 +139,18 @@ router.get('/users/:id', async (req, res) => {
  
  //
  
- router.delete('/users/:id', async (req, res) => {
+ router.delete('/users/:id', async (req, res) => {//
      try{
          const user = await Task.findByIdAndDelete(req.params.id);
  
          if(!user) {
              return res.status(404).send();
          }
-         res.send(user);
+         res.send(user);//after deleting user we send to postman
      }catch (e) {
          res.status(500).send();
      }
  });
 
-module.exports = router;
+module.exports = router;//exporting the module
+
